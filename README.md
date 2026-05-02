@@ -1,6 +1,7 @@
 # dfdsg
-
 const app = document.getElementById('app');
+
+// 游戏状态
 let state = {
     diskCount: 3,
     mode: 'manual', // manual or auto
@@ -243,14 +244,18 @@ function addDragEvents(diskEl, diskData, towerIndex) {
             t.classList.remove('can-drop', 'cannot-drop');
         });
 
-       
+        // 查找释放的目标塔
         const targetTowerEl = document.elementFromPoint(e.clientX, e.clientY)?.closest('.tower');
 
         if (targetTowerEl) {
             const targetIndex = parseInt(targetTowerEl.dataset.index);
+            // 尝试移动
             attemptMove(state.draggedDiskData.fromTowerIndex, targetIndex);
         } else {
-            
+            // 放回原处，如果不在塔上
+            // 注意：attemptMove 会处理 UI 更新，如果失败，我们需要手动刷新位置
+            // 但 attemptMove 里如果返回 false，我们得把 DOM 放回去
+            // 为了简单，我们在 attemptMove 成功才移除事件，失败则依靠 updateBoard 修正
         }
 
         diskEl.classList.remove('dragging');
@@ -284,6 +289,7 @@ function checkDropTarget(mouseX, mouseY) {
         }
     }
 }
+// 尝试移动：返回 Promise，成功 resolve，失败 reject
 function attemptMove(fromIdx, toIdx) {
     return new Promise((resolve, reject) => {
         if (fromIdx === toIdx) { reject('Same Tower'); return; }
